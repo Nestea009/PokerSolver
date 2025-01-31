@@ -11,3 +11,4 @@ Devolverá también por pantalla un full-breakdown de qué hittea la mano dada e
 
 Dado un array de todas las cartas se extraerán las que se vayan a usar para la mano, y entonces se ejecutará n veces una función que hace un flop y apunta qué hittea nuestra mano exactamente, siendo n un número dado por el usuario mediante input.
 
+test
