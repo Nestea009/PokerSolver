@@ -9,6 +9,25 @@ bool sonPareja(string a, string b) {
     return false;
 }
 
+
+// Para el caso de escalera, ordena la mano para comprobar si hay o no hay escalera
+// Sí funciona
+void ordenarMano(int vector[]) {
+    int n = 5;
+
+    // Recorrer el vector y ordenar los elementos
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (vector[j] > vector[j + 1]) {
+                // Intercambiar los elementos adyacentes
+                int temp = vector[j];
+                vector[j] = vector[j + 1];
+                vector[j + 1] = temp;
+            }
+        }
+    }    
+}
+
 bool mismoPalo(string a, string b) {
     if (a[1] == b[1]) {
         return true;
@@ -20,25 +39,26 @@ bool mismoPalo(string a, string b) {
 void transformar(string mano[], int new_hand[]) {
     for(int i = 0; i < 5; i++) {
         if(sonPareja(mano[i], "Ax")) {
-            new_hand[i] == -1;
+            new_hand[i] = -1;
         }
         else if(sonPareja(mano[i], "Tx")) {
-            
+            new_hand[i] = 10;
         }
         else if(sonPareja(mano[i], "Jx")) {
-            new_hand[i] == 11;
+            new_hand[i] = 11;
         }
         else if(sonPareja(mano[i], "Qx")) {
-            new_hand[i] == 12;
+            new_hand[i] = 12;
         }
         else if(sonPareja(mano[i], "Kx")) {
-            new_hand[i] == 13;
+            new_hand[i] = 13;
         }
         else {
+            // Esto sí funciona
             string a = mano[i];
             char b = a[0];
-            string str(1,b);
-            new_hand[i] = stoi(b);
+            int num = b - '0';
+            new_hand[i] = num;
         }
     }
 }
@@ -166,15 +186,39 @@ bool esEscalera(string mano[]) {
             break;
         }
     }
+
+    // Transormo la mano a enteros para poder compararlos fácilmente
     int new_mano[5] = {};
     transformar(mano, new_mano);
 
-    if(As) {
+    // Ordeno la mano para comprobar si están todos seguidos
+    ordenarMano(new_mano);
 
+    if(As) {        
+        // As = -1, así que estará ordenado de la siguiente forma
+        // {-1, 2, 3, 4, 5}                                    
+        if (new_mano[1] == 2) {
+            // Escalera de As a 5     
+            if (new_mano[2] == 3 && new_mano[3] == 4 && new_mano[4] == 5) {
+                return true;
+            }   
+            return false;
+        }
+        // {-1, 10, 11, 12, 13}  
+        else if(new_mano[1] == 10) {
+            // Escalera de T a As
+            if (new_mano[2] == 11 && new_mano[3] == 12 && new_mano[4] == 13) {
+                return true;
+            }
+            return false;
+        } 
+        else {
+            return false; 
+        }
     }
     else {
-        for (int j = 0; j > 4; j++) {
-            if(!(new_mano[j] + 1 == new_mano[j+1])) {
+        for (int j = 0; j < 4; j++) {
+            if(!((new_mano[j] + 1) == (new_mano[j+1]))) {
                 return false;
             }
         }
@@ -192,11 +236,34 @@ bool esColor(string mano[]) {
 }
 
 bool esFull(string mano[]) {
+    int new_mano[5] = {};
+    transformar(mano, new_mano);
+    ordenarMano(new_mano);
+    if(new_mano[0] == new_mano[1] && new_mano[3] == new_mano[2] && new_mano[4] == new_mano[3]) {
+        cout << "Full!" << endl;
+        return true;
+    }
+    else if(new_mano[0] == new_mano[1] && new_mano[0] == new_mano[2] && new_mano[4] == new_mano[3]) {
+        cout << "Full!" << endl;
+        return true;
+
+    }
+    else {
+        return false;
+    }
     return false;
 }
 
 bool esPoker(string mano[]) {
-    
+    int new_mano[5] = {};
+    transformar(mano, new_mano); 
+    ordenarMano(new_mano);
+    if((new_mano[0] == new_mano[1]) && (new_mano[0] == new_mano[2]) && (new_mano[0] == new_mano[3])) {
+        return true;
+    }
+    else if((new_mano[1] == new_mano[2]) && (new_mano[1] == new_mano[3]) && (new_mano[1] == new_mano[4])) {
+        return true;
+    }
     return false;
 }
 
@@ -242,17 +309,15 @@ void Flop(string deck[], string hand[], unsigned &numeroParejas, unsigned &numer
             if (esPoker(mano5)) {
                 numeroPokeres++;
             }
+            else if(esFull(mano5)) {
+                numeroFullHouses++;
+            }
             else  {
                 numeroTrios++;
             }
         } 
         else if(esDoblesParejas(mano5)) {
-            if (esFull(mano5)) {
-                numeroFullHouses++;
-            }
-            else {
-                numeroDoblesParejas++;
-            }
+            numeroDoblesParejas++;
         }
         else {
             numeroParejas++;
@@ -296,14 +361,14 @@ int main() {
         Flop(newDeck, hand, numeroParejas, numeroDoblesParejas, numeroTrios, numeroEscaleras, numeroColores, numeroFullHouses, numeroPokeres, numeroStraightFlushes, DIM);
     }
 
-    cout << endl << "Hay " << numeroParejas << " parejas." << endl;
-    cout << "Hay " << numeroDoblesParejas << " dobles parejas." << endl;
-    cout << "Hay " << numeroTrios << " trios." << endl;
-    cout << "Hay " << numeroEscaleras << " escaleras." << endl;
-    cout << "Hay " << numeroColores << " colores." << endl;
-    cout << "Hay " << numeroFullHouses << " full houses." << endl;
-    cout << "Hay " << numeroPokeres << " pokeres." << endl;
-    cout << "Hay " << numeroStraightFlushes << " straight flushes." << endl;
+    cout << endl << "Hay " << numeroParejas << " parejas. Con probabilidad " << double(numeroParejas)/n * 100 << "%." << endl;
+    cout << "Hay " << numeroDoblesParejas << " dobles parejas. Con probabilidad " << double(numeroDoblesParejas)/n * 100 << "%." << endl;
+    cout << "Hay " << numeroTrios << " trios. Con probabilidad " << double(numeroTrios)/n * 100 << "%." << endl;
+    cout << "Hay " << numeroEscaleras << " escaleras. Con probabilidad " << double(numeroEscaleras)/n * 100 << "%." << endl;
+    cout << "Hay " << numeroColores << " colores. Con probabilidad " << double(numeroColores)/n * 100 << "%." << endl;
+    cout << "Hay " << numeroFullHouses << " full houses. Con probabilidad " << double(numeroFullHouses)/n * 100 << "%." << endl;
+    cout << "Hay " << numeroPokeres << " pokeres. Con probabilidad " << double(numeroPokeres)/n * 100 << "%." << endl;
+    cout << "Hay " << numeroStraightFlushes << " straight flushes. Con probabilidad " << double(numeroStraightFlushes)/n * 100 << "%." << endl;
 
     return 0;
 }
